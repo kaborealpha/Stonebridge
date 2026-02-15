@@ -1,27 +1,400 @@
-import { useState } from "react";
-
-const files = {
-  "index.html": `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STONEBRIDGE — Centre de Formation Linguistique</title>
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/animations.css">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="icon" href="assets/img/favicon.png" type="image/png">
+<style>
+  :root {
+    --navy:      #0F2340;
+    --navy-mid:  #1B3A5C;
+    --gold:      #C49A2B;
+    --gold-light:#E8B84B;
+    --cream:     #F9F5EE;
+    --cream-dark:#EFE9DE;
+    --text:      #1A1A2E;
+    --muted:     #6B7B8D;
+    --white:     #FFFFFF;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:var(--cream-dark)}
+  ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
+
+  /* ── NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:200;
+    height:70px; display:flex; align-items:center;
+    background:rgba(15,35,64,0.97); backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(196,154,43,0.25);
+    transition:box-shadow .3s;
+  }
+  .nav-inner {
+    max-width:1200px; margin:0 auto; width:100%;
+    padding:0 2rem; display:flex; align-items:center; justify-content:space-between;
+  }
+  .nav-logo {
+    font-family:'Cormorant Garamond',serif; font-weight:700;
+    font-size:1.5rem; color:var(--white); letter-spacing:.12em; text-transform:uppercase; text-decoration:none;
+  }
+  .nav-logo span { color:var(--gold); }
+  .nav-links { display:flex; gap:2.2rem; list-style:none; }
+  .nav-links a {
+    color:rgba(255,255,255,.75); text-decoration:none;
+    font-size:.78rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
+    position:relative; transition:color .2s;
+  }
+  .nav-links a::after {
+    content:''; position:absolute; bottom:-4px; left:0; right:0;
+    height:1px; background:var(--gold); transform:scaleX(0); transition:transform .3s;
+  }
+  .nav-links a:hover { color:var(--gold); }
+  .nav-links a:hover::after { transform:scaleX(1); }
+  .nav-cta {
+    background:var(--gold); color:var(--navy) !important;
+    padding:.5rem 1.4rem; font-weight:500 !important;
+    border-radius:0; transition:background .2s, transform .2s !important;
+  }
+  .nav-cta:hover { background:var(--gold-light) !important; transform:translateY(-1px); }
+  .nav-cta::after { display:none !important; }
+
+  /* ── HERO */
+  .hero {
+    min-height:100vh; background:var(--navy);
+    display:flex; align-items:center; position:relative; overflow:hidden; padding-top:70px;
+  }
+  .hero-bg {
+    position:absolute; inset:0;
+    background:radial-gradient(ellipse 70% 60% at 65% 50%, rgba(196,154,43,.07), transparent 60%),
+               radial-gradient(ellipse 50% 80% at 15% 80%, rgba(27,58,92,.5), transparent 50%);
+  }
+  .hero-grid {
+    position:absolute; inset:0; opacity:.04;
+    background-image:linear-gradient(rgba(196,154,43,1) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(196,154,43,1) 1px,transparent 1px);
+    background-size:60px 60px;
+  }
+  .hero-content {
+    position:relative; z-index:2; max-width:1200px;
+    margin:0 auto; width:100%; padding:0 2rem;
+    display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center;
+  }
+  .hero-eyebrow {
+    display:inline-flex; align-items:center; gap:.6rem;
+    color:var(--gold); font-size:.72rem; letter-spacing:.2em;
+    text-transform:uppercase; font-weight:500; margin-bottom:1.2rem;
+  }
+  .hero-eyebrow::before { content:''; width:28px; height:1px; background:var(--gold); }
+  .hero-title {
+    font-family:'Cormorant Garamond',serif; font-weight:300;
+    font-size:clamp(3rem,5vw,4.8rem); color:var(--white); line-height:1.05; margin-bottom:1.2rem;
+  }
+  .hero-title em { font-style:italic; color:var(--gold); display:block; }
+  .hero-desc {
+    color:rgba(255,255,255,.65); font-size:.95rem; line-height:1.8;
+    max-width:480px; margin-bottom:2rem; font-weight:300;
+  }
+  .hero-actions { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+  .btn-primary {
+    background:var(--gold); color:var(--navy);
+    padding:.85rem 2rem; font-family:'DM Sans',sans-serif;
+    font-size:.8rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+    text-decoration:none; transition:all .25s; display:inline-flex; align-items:center; gap:.4rem;
+  }
+  .btn-primary:hover { background:var(--gold-light); transform:translateY(-2px); }
+  .btn-ghost {
+    color:rgba(255,255,255,.7); font-size:.8rem; letter-spacing:.1em;
+    text-transform:uppercase; text-decoration:none; font-weight:500;
+    display:inline-flex; align-items:center; gap:.4rem; transition:color .2s;
+  }
+  .btn-ghost:hover { color:var(--gold); }
+  .hero-stats {
+    display:flex; gap:2rem; margin-top:3rem; padding-top:2.5rem;
+    border-top:1px solid rgba(255,255,255,.1); flex-wrap:wrap;
+  }
+  .stat-num {
+    font-family:'Cormorant Garamond',serif; font-size:2.2rem;
+    font-weight:600; color:var(--gold); line-height:1;
+  }
+  .stat-label { font-size:.7rem; color:rgba(255,255,255,.5); letter-spacing:.08em; text-transform:uppercase; margin-top:.25rem; }
+
+  /* Hero right card */
+  .hero-card {
+    background:rgba(255,255,255,.04); border:1px solid rgba(196,154,43,.25);
+    padding:2.5rem; position:relative; animation:floatCard 6s ease-in-out infinite;
+  }
+  @keyframes floatCard { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .hero-card::before {
+    content:''; position:absolute; top:-1px; left:2rem; right:2rem;
+    height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .card-tag {
+    display:inline-block; background:rgba(196,154,43,.15);
+    border:1px solid rgba(196,154,43,.3); color:var(--gold);
+    font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+    padding:.28rem .7rem; margin-right:.4rem; margin-bottom:.4rem;
+  }
+  .card-title { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-weight:600; color:var(--white); margin:1rem 0 .4rem; }
+  .card-sub { color:rgba(255,255,255,.45); font-size:.78rem; margin-bottom:1.5rem; }
+  .card-levels { display:flex; flex-direction:column; gap:.5rem; margin-bottom:1.5rem; }
+  .level-label { display:flex; justify-content:space-between; font-size:.7rem; color:rgba(255,255,255,.5); margin-bottom:.2rem; }
+  .level-track { height:3px; background:rgba(255,255,255,.08); }
+  .level-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-light)); animation:fillBar 1.5s ease forwards; }
+  @keyframes fillBar { from{width:0} }
+  .card-cta {
+    width:100%; background:rgba(196,154,43,.15); border:1px solid rgba(196,154,43,.4);
+    color:var(--gold); padding:.8rem; font-family:'DM Sans',sans-serif;
+    font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; font-weight:500; transition:all .2s;
+  }
+  .card-cta:hover { background:rgba(196,154,43,.25); }
+
+  /* ── SECTIONS */
+  section { padding:6rem 2rem; }
+  .container { max-width:1200px; margin:0 auto; }
+  .sec-eyebrow {
+    display:inline-flex; align-items:center; gap:.6rem;
+    color:var(--gold); font-size:.7rem; letter-spacing:.2em;
+    text-transform:uppercase; font-weight:500; margin-bottom:.8rem;
+  }
+  .sec-eyebrow::before { content:''; width:22px; height:1px; background:var(--gold); }
+  .sec-title {
+    font-family:'Cormorant Garamond',serif; font-weight:300;
+    font-size:clamp(2rem,3.5vw,3rem); line-height:1.15; color:var(--navy);
+  }
+  .sec-title em { font-style:italic; color:var(--gold); }
+  .sec-title.light { color:var(--white); }
+  .sec-title.center { text-align:center; }
+  .sec-line { width:40px; height:2px; background:var(--gold); margin:.6rem auto 2rem; }
+
+  /* ── À PROPOS */
+  .about { background:var(--white); position:relative; overflow:hidden; }
+  .about::before {
+    content:'STONEBRIDGE';
+    position:absolute; right:-2rem; top:50%; transform:translateY(-50%);
+    font-family:'Cormorant Garamond',serif; font-size:9rem; font-weight:700;
+    color:rgba(15,35,64,.04); pointer-events:none; white-space:nowrap;
+  }
+  .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
+  .about-visual {
+    background:linear-gradient(135deg,var(--navy),var(--navy-mid));
+    aspect-ratio:4/5; position:relative; display:flex; align-items:center; justify-content:center;
+  }
+  .about-visual-text {
+    font-family:'Cormorant Garamond',serif; font-size:5rem;
+    font-weight:300; color:rgba(196,154,43,.4); letter-spacing:.05em;
+  }
+  .about-badge {
+    position:absolute; bottom:-1.5rem; right:-1.5rem;
+    background:var(--gold); padding:1.5rem; text-align:center;
+  }
+  .badge-num { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:700; color:var(--navy); line-height:1; }
+  .badge-txt { font-size:.65rem; color:var(--navy); text-transform:uppercase; letter-spacing:.1em; margin-top:.2rem; }
+  .about-text { color:var(--muted); line-height:1.85; font-size:.93rem; font-weight:300; margin:1.2rem 0; }
+  .about-values { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
+  .val-item {
+    padding:1rem 1.1rem; border:1px solid rgba(15,35,64,.07);
+    border-left:3px solid var(--gold); background:var(--cream); transition:all .2s;
+  }
+  .val-item:hover { background:var(--cream-dark); transform:translateX(4px); }
+  .val-title { font-size:.82rem; font-weight:500; color:var(--navy); margin-bottom:.2rem; }
+  .val-desc { font-size:.72rem; color:var(--muted); line-height:1.5; }
+
+  /* ── MISSION / VISION */
+  .mission { background:var(--navy); }
+  .mv-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; }
+  .mv-card { padding:2.5rem; border:1px solid rgba(196,154,43,.2); position:relative; }
+  .mv-card::before {
+    content:''; position:absolute; top:-1px; left:2rem; right:2rem;
+    height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .mv-card-title {
+    font-family:'Cormorant Garamond',serif; font-size:1.6rem;
+    font-weight:600; color:var(--gold); margin-bottom:1rem;
+  }
+  .mv-card p { color:rgba(255,255,255,.7); font-size:.88rem; line-height:1.8; margin-bottom:.8rem; }
+  .mv-list { list-style:none; display:flex; flex-direction:column; gap:.6rem; margin-top:.5rem; }
+  .mv-list li {
+    font-size:.85rem; color:rgba(255,255,255,.7);
+    display:flex; align-items:flex-start; gap:.6rem;
+  }
+  .mv-list li::before { content:'→'; color:var(--gold); flex-shrink:0; margin-top:.05rem; }
+
+  /* ── DIFFÉRENCIATION */
+  .diff { background:var(--cream); }
+  .diff-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5px; background:rgba(15,35,64,.1); margin-top:3rem; }
+  .diff-card {
+    background:var(--white); padding:2.5rem; position:relative; overflow:hidden;
+    transition:all .3s; cursor:default;
+  }
+  .diff-card::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:3px; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .3s;
+  }
+  .diff-card:hover { background:var(--navy); }
+  .diff-card:hover::before { transform:scaleX(1); }
+  .diff-icon { font-size:2rem; margin-bottom:1.2rem; display:block; }
+  .diff-title {
+    font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:600;
+    color:var(--navy); margin-bottom:.7rem; transition:color .3s;
+  }
+  .diff-card:hover .diff-title { color:var(--white); }
+  .diff-desc { font-size:.83rem; color:var(--muted); line-height:1.7; transition:color .3s; }
+  .diff-card:hover .diff-desc { color:rgba(255,255,255,.6); }
+
+  /* ── FORMATIONS */
+  .formations { background:var(--white); }
+  .form-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:3rem; flex-wrap:wrap; gap:1rem; }
+  .form-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; }
+  .form-card {
+    border:1px solid rgba(15,35,64,.08); padding:2rem;
+    background:var(--cream); transition:all .3s;
+  }
+  .form-card:hover { transform:translateY(-6px); box-shadow:0 20px 50px rgba(15,35,64,.1); border-color:rgba(196,154,43,.3); }
+  .form-card-icon { font-size:2rem; margin-bottom:1rem; display:block; }
+  .form-card-title {
+    font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:600;
+    color:var(--navy); margin-bottom:.6rem;
+  }
+  .form-card-desc { font-size:.82rem; color:var(--muted); line-height:1.7; margin-bottom:1rem; }
+  .form-tags { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .form-tag {
+    font-size:.65rem; letter-spacing:.1em; text-transform:uppercase;
+    padding:.22rem .6rem; background:var(--cream-dark); color:var(--navy); font-weight:500;
+  }
+
+  /* ── PUBLIC */
+  .public { background:var(--navy); }
+  .pub-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:1.5rem; margin-top:3rem; }
+  .pub-card {
+    padding:2rem 1.5rem; border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.03); text-align:center;
+    transition:all .3s;
+  }
+  .pub-card:hover { border-color:rgba(196,154,43,.3); background:rgba(196,154,43,.06); }
+  .pub-icon { font-size:2rem; margin-bottom:.8rem; display:block; }
+  .pub-name { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:600; color:var(--white); }
+  .pub-desc { font-size:.72rem; color:rgba(255,255,255,.5); margin-top:.3rem; }
+
+  /* ── DURÉES */
+  .durees { background:var(--cream); }
+  .dur-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; margin-top:3rem; }
+  .dur-card {
+    background:var(--white); padding:2rem 1.5rem; text-align:center;
+    border-bottom:3px solid var(--gold); transition:all .3s;
+  }
+  .dur-card:hover { transform:translateY(-5px); box-shadow:0 15px 40px rgba(15,35,64,.1); }
+  .dur-num {
+    font-family:'Cormorant Garamond',serif; font-size:2.8rem;
+    font-weight:700; color:var(--gold); line-height:1;
+  }
+  .dur-unit { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin:.3rem 0; }
+  .dur-label { font-size:.82rem; color:var(--navy); font-weight:500; }
+
+  /* ── TÉMOIGNAGES */
+  .testi { background:var(--white); }
+  .testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; margin-top:3rem; }
+  .testi-card {
+    padding:2rem; background:var(--cream); border:1px solid rgba(15,35,64,.06);
+    position:relative; transition:all .3s;
+  }
+  .testi-card:hover { border-color:rgba(196,154,43,.3); }
+  .testi-card::before {
+    content:'\201C'; font-family:'Cormorant Garamond',serif;
+    font-size:5rem; color:var(--gold); opacity:.25;
+    position:absolute; top:.5rem; left:1.5rem; line-height:1;
+  }
+  .testi-text { font-size:.86rem; color:var(--muted); line-height:1.75; font-style:italic; padding-top:1.5rem; margin-bottom:1.2rem; }
+  .testi-author { display:flex; align-items:center; gap:.75rem; }
+  .testi-avatar {
+    width:40px; height:40px; border-radius:50%; background:var(--navy);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:700; color:var(--gold); flex-shrink:0;
+  }
+  .testi-name { font-size:.83rem; font-weight:500; color:var(--navy); }
+  .testi-role { font-size:.7rem; color:var(--muted); }
+  .testi-stars { color:var(--gold); font-size:.72rem; margin-top:.15rem; }
+
+  /* ── CTA BAND */
+  .cta-band { background:var(--gold); padding:5rem 2rem; position:relative; overflow:hidden; }
+  .cta-band::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.1),transparent 60%); }
+  .cta-inner { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:2rem; flex-wrap:wrap; position:relative; z-index:1; }
+  .cta-lbl { font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(15,35,64,.6); margin-bottom:.4rem; }
+  .cta-title { font-family:'Cormorant Garamond',serif; font-size:2.4rem; font-weight:600; color:var(--navy); line-height:1.15; }
+  .btn-dark { background:var(--navy); color:var(--white); padding:.85rem 2rem; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; text-decoration:none; transition:all .25s; }
+  .btn-dark:hover { background:#1B3A5C; transform:translateY(-2px); }
+  .btn-outline-dark { background:transparent; color:var(--navy); border:2px solid var(--navy); padding:.85rem 2rem; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; text-decoration:none; transition:all .25s; }
+  .btn-outline-dark:hover { background:var(--navy); color:var(--white); }
+
+  /* ── CONTACT */
+  .contact { background:var(--navy); position:relative; overflow:hidden; }
+  .contact::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 50% 70% at 10% 50%,rgba(196,154,43,.06),transparent); }
+  .contact-inner { display:grid; grid-template-columns:1fr 1.3fr; gap:5rem; align-items:start; position:relative; z-index:1; }
+  .contact-desc { color:rgba(255,255,255,.55); font-size:.88rem; line-height:1.8; margin:1.2rem 0 2rem; font-weight:300; }
+  .contact-details { display:flex; flex-direction:column; gap:1.2rem; margin-bottom:2rem; }
+  .c-item { display:flex; align-items:flex-start; gap:.9rem; }
+  .c-icon { width:38px; height:38px; border:1px solid rgba(196,154,43,.3); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; }
+  .c-lbl { font-size:.65rem; color:var(--gold); letter-spacing:.15em; text-transform:uppercase; }
+  .c-val { font-size:.87rem; color:rgba(255,255,255,.75); }
+  .social-row { display:flex; gap:.6rem; margin-top:1.5rem; }
+  .soc-link { width:36px; height:36px; border:1px solid rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.5); font-size:.75rem; text-decoration:none; transition:all .2s; font-weight:600; }
+  .soc-link:hover { border-color:var(--gold); color:var(--gold); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  .form-group { display:flex; flex-direction:column; margin-bottom:1rem; }
+  .form-group label { font-size:.67rem; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.5); margin-bottom:.4rem; }
+  .form-group input, .form-group select, .form-group textarea {
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+    color:var(--white); padding:.75rem 1rem; font-family:'DM Sans',sans-serif;
+    font-size:.86rem; outline:none; resize:vertical; transition:border-color .2s;
+  }
+  .form-group input::placeholder, .form-group textarea::placeholder { color:rgba(255,255,255,.25); }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--gold); }
+  .form-group select option { background:var(--navy); }
+  .btn-submit { width:100%; background:var(--gold); color:var(--navy); padding:1rem; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.82rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; transition:all .25s; }
+  .btn-submit:hover { background:var(--gold-light); transform:translateY(-2px); }
+
+  /* ── FOOTER */
+  footer { background:#080F1A; padding:4rem 2rem 1.5rem; }
+  .footer-top { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr; gap:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,.06); }
+  .f-logo { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:700; color:var(--white); letter-spacing:.1em; text-transform:uppercase; }
+  .f-logo span { color:var(--gold); }
+  .f-tagline { font-size:.82rem; color:rgba(255,255,255,.4); line-height:1.65; margin-top:.6rem; font-style:italic; font-family:'Cormorant Garamond',serif; }
+  .f-col h4 { font-size:.67rem; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:1.1rem; }
+  .f-col ul { list-style:none; display:flex; flex-direction:column; gap:.55rem; }
+  .f-col ul a { font-size:.82rem; color:rgba(255,255,255,.55); text-decoration:none; transition:color .2s; }
+  .f-col ul a:hover { color:var(--gold); }
+  .footer-bottom { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding-top:1.5rem; flex-wrap:wrap; gap:1rem; }
+  .f-copy { font-size:.73rem; color:rgba(255,255,255,.3); }
+  .f-adrs { font-size:.73rem; color:rgba(255,255,255,.3); }
+
+  /* ── FADE IN */
+  .fade-in { opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease; }
+  .fade-in.visible { opacity:1; transform:none; }
+  .d1{transition-delay:.1s} .d2{transition-delay:.2s} .d3{transition-delay:.3s} .d4{transition-delay:.4s} .d5{transition-delay:.5s}
+
+  /* ── RESPONSIVE */
+  @media(max-width:900px){
+    .hero-content, .about-grid, .mv-grid, .diff-grid, .form-grid,
+    .testi-grid, .contact-inner, .footer-top { grid-template-columns:1fr; }
+    .pub-grid { grid-template-columns:repeat(2,1fr); }
+    .dur-grid { grid-template-columns:repeat(2,1fr); }
+    .nav-links { display:none; }
+    .form-header { flex-direction:column; align-items:flex-start; }
+    .hero-card, .about-visual { display:none; }
+    .cta-inner { flex-direction:column; align-items:flex-start; }
+    .form-row { grid-template-columns:1fr; }
+  }
+</style>
 </head>
 <body>
 
 <!-- NAV -->
-<nav id="navbar">
+<nav>
   <div class="nav-inner">
     <a href="#accueil" class="nav-logo">Stone<span>bridge</span></a>
-    <button class="hamburger" id="hamburger" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-    <ul class="nav-links" id="nav-links">
+    <ul class="nav-links">
       <li><a href="#accueil">Accueil</a></li>
       <li><a href="#about">À propos</a></li>
       <li><a href="#formations">Formations</a></li>
@@ -36,10 +409,11 @@ const files = {
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-left">
+    <div>
       <div class="hero-eyebrow">Centre de Formation Linguistique · Ouagadougou</div>
       <h1 class="hero-title">
-        L'anglais qui<br>ouvre les portes<br>
+        L'anglais qui<br>
+        ouvre les portes<br>
         <em>du monde professionnel</em>
       </h1>
       <p class="hero-desc">
@@ -50,44 +424,42 @@ const files = {
         <a href="#formations" class="btn-ghost">Découvrir nos programmes →</a>
       </div>
       <div class="hero-stats">
-        <div class="stat-item">
+        <div>
           <div class="stat-num">2021</div>
           <div class="stat-label">Année de création</div>
         </div>
-        <div class="stat-item">
+        <div>
           <div class="stat-num">A1→C2</div>
           <div class="stat-label">Tous niveaux</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-num">6+</div>
+        <div>
+          <div class="stat-num">5+</div>
           <div class="stat-label">Formats de cours</div>
         </div>
       </div>
     </div>
-    <div class="hero-right">
-      <div class="hero-card">
-        <div class="card-tags">
-          <span class="card-tag">Business English</span>
-          <span class="card-tag">Certifiant</span>
-        </div>
-        <div class="card-title">Programme Intensif</div>
-        <div class="card-sub">Préparation TOEFL / TOEIC · 2 semaines à 6 mois</div>
-        <div class="card-levels">
-          <div class="level-bar">
-            <div class="level-label"><span>Expression orale</span><span>95%</span></div>
-            <div class="level-track"><div class="level-fill" style="width:95%"></div></div>
-          </div>
-          <div class="level-bar">
-            <div class="level-label"><span>Anglais des affaires</span><span>92%</span></div>
-            <div class="level-track"><div class="level-fill" style="width:92%;animation-delay:.3s"></div></div>
-          </div>
-          <div class="level-bar">
-            <div class="level-label"><span>Communication pro</span><span>97%</span></div>
-            <div class="level-track"><div class="level-fill" style="width:97%;animation-delay:.6s"></div></div>
-          </div>
-        </div>
-        <button class="card-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Réserver mon cours d'essai</button>
+    <div class="hero-card">
+      <div>
+        <span class="card-tag">Business English</span>
+        <span class="card-tag">Certifiant</span>
       </div>
+      <div class="card-title">Programme Intensif</div>
+      <div class="card-sub">Préparation TOEFL / TOEIC · 2 semaines à 6 mois</div>
+      <div class="card-levels">
+        <div>
+          <div class="level-label"><span>Expression orale</span><span>95%</span></div>
+          <div class="level-track"><div class="level-fill" style="width:95%"></div></div>
+        </div>
+        <div>
+          <div class="level-label"><span>Anglais des affaires</span><span>92%</span></div>
+          <div class="level-track"><div class="level-fill" style="width:92%;animation-delay:.3s"></div></div>
+        </div>
+        <div>
+          <div class="level-label"><span>Communication professionnelle</span><span>97%</span></div>
+          <div class="level-track"><div class="level-fill" style="width:97%;animation-delay:.6s"></div></div>
+        </div>
+      </div>
+      <button class="card-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Réserver mon cours d'essai</button>
     </div>
   </div>
 </section>
@@ -96,27 +468,41 @@ const files = {
 <section class="about" id="about">
   <div class="container">
     <div class="about-grid">
-      <div class="about-visual fade-in">
-        <div class="about-img-placeholder">SB</div>
-        <div class="about-badge">
-          <div class="badge-num">4+</div>
-          <div class="badge-txt">Ans d'expérience</div>
+      <div class="fade-in">
+        <div class="about-visual">
+          <div class="about-visual-text">SB</div>
+          <div class="about-badge">
+            <div class="badge-num">4+</div>
+            <div class="badge-txt">Ans d'expérience</div>
+          </div>
         </div>
       </div>
-      <div class="about-content fade-in delay-2">
+      <div class="fade-in d2">
         <div class="sec-eyebrow">Notre histoire</div>
         <h2 class="sec-title">Un centre fondé sur<br><em>l'excellence professionnelle</em></h2>
         <p class="about-text">
           Le Centre de Formation Linguistique Stonebridge est un établissement spécialisé dans l'enseignement professionnel de l'anglais, avec un accent particulier sur l'anglais des affaires et la communication professionnelle.
         </p>
         <p class="about-text">
-          Implanté au Burkina Faso depuis 2021, le centre accompagne étudiants, professionnels, entrepreneurs, entreprises et candidats aux certifications internationales. Notre approche repose sur une pédagogie pratique, orientée vers les résultats.
+          Implanté au Burkina Faso depuis 2021, le centre accompagne étudiants, professionnels, entrepreneurs, entreprises et candidats aux certifications internationales. Notre approche repose sur une pédagogie pratique, orientée vers les résultats et adaptée aux réalités du marché local et international.
         </p>
         <div class="about-values">
-          <div class="val-item"><div class="val-title">Excellence</div><div class="val-desc">Qualité dans l'enseignement et le suivi de chaque apprenant.</div></div>
-          <div class="val-item"><div class="val-title">Professionnalisme</div><div class="val-desc">Rigueur, discipline et éthique professionnelle au quotidien.</div></div>
-          <div class="val-item"><div class="val-title">Innovation</div><div class="val-desc">Méthodes adaptées aux évolutions du monde professionnel.</div></div>
-          <div class="val-item"><div class="val-title">Intégrité</div><div class="val-desc">Transparence et respect des engagements envers nos apprenants.</div></div>
+          <div class="val-item">
+            <div class="val-title">Excellence</div>
+            <div class="val-desc">Qualité dans l'enseignement, l'encadrement et le suivi de chaque apprenant.</div>
+          </div>
+          <div class="val-item">
+            <div class="val-title">Professionnalisme</div>
+            <div class="val-desc">Rigueur, discipline et éthique professionnelle au quotidien.</div>
+          </div>
+          <div class="val-item">
+            <div class="val-title">Innovation</div>
+            <div class="val-desc">Méthodes pédagogiques adaptées aux évolutions du monde professionnel.</div>
+          </div>
+          <div class="val-item">
+            <div class="val-title">Intégrité</div>
+            <div class="val-desc">Transparence et respect des engagements envers nos apprenants.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -126,26 +512,24 @@ const files = {
 <!-- MISSION / VISION -->
 <section class="mission">
   <div class="container">
-    <div class="sec-center fade-in">
-      <div class="sec-eyebrow center">Raison d'être</div>
+    <div style="text-align:center;margin-bottom:3rem" class="fade-in">
+      <div class="sec-eyebrow" style="color:var(--gold);justify-content:center">Raison d'être</div>
       <h2 class="sec-title light center">Notre mission &amp; notre vision</h2>
       <div class="sec-line"></div>
     </div>
     <div class="mv-grid">
-      <div class="mv-card fade-in delay-1">
-        <div class="mv-icon">🎯</div>
-        <div class="mv-card-title">Notre Mission</div>
+      <div class="mv-card fade-in d1">
+        <div class="mv-card-title">🎯 Notre Mission</div>
         <p>Former des apprenants capables de communiquer efficacement en anglais dans un contexte académique et professionnel, en développant leurs compétences linguistiques, leur confiance et leur employabilité.</p>
         <ul class="mv-list">
           <li>Rendre l'anglais accessible et pratique</li>
-          <li>Préparer aux exigences du monde professionnel</li>
+          <li>Préparer nos apprenants aux exigences du monde professionnel</li>
           <li>Contribuer au développement du capital humain au Burkina Faso</li>
         </ul>
       </div>
-      <div class="mv-card fade-in delay-2">
-        <div class="mv-icon">🌍</div>
-        <div class="mv-card-title">Notre Vision</div>
-        <p>Devenir une référence nationale et sous-régionale dans la formation en anglais professionnel, reconnue pour la qualité de son encadrement et son impact sur l'employabilité.</p>
+      <div class="mv-card fade-in d2">
+        <div class="mv-card-title">🌍 Notre Vision</div>
+        <p>Devenir une référence nationale et sous-régionale dans la formation en anglais professionnel, reconnue pour la qualité de son encadrement, son innovation pédagogique et son impact sur l'employabilité des jeunes et des professionnels.</p>
         <ul class="mv-list">
           <li>Former des leaders bilingues compétitifs à l'international</li>
           <li>Développer des programmes innovants adaptés au marché africain</li>
@@ -156,21 +540,45 @@ const files = {
   </div>
 </section>
 
-<!-- POURQUOI NOUS -->
+<!-- DIFFÉRENCIATION -->
 <section class="diff">
   <div class="container">
-    <div class="sec-center fade-in">
-      <div class="sec-eyebrow center">Ce qui nous distingue</div>
-      <h2 class="sec-title center">Pourquoi choisir <em>STONEBRIDGE ?</em></h2>
+    <div class="fade-in" style="text-align:center;margin-bottom:.5rem">
+      <div class="sec-eyebrow" style="justify-content:center">Ce qui nous distingue</div>
+      <h2 class="sec-title center">Pourquoi choisir<br><em>STONEBRIDGE ?</em></h2>
       <div class="sec-line"></div>
     </div>
     <div class="diff-grid">
-      <div class="diff-card fade-in delay-1"><span class="diff-icon">💼</span><div class="diff-title">Business & Employabilité</div><p class="diff-desc">Nous préparons nos apprenants à utiliser l'anglais dans un contexte professionnel réel, pas seulement à l'apprendre.</p></div>
-      <div class="diff-card fade-in delay-2"><span class="diff-icon">🎭</span><div class="diff-title">Pédagogie interactive</div><p class="diff-desc">Jeux de rôles, simulations d'entretiens, présentations professionnelles et études de cas concrets.</p></div>
-      <div class="diff-card fade-in delay-3"><span class="diff-icon">📊</span><div class="diff-title">Suivi personnalisé</div><p class="diff-desc">Accompagnement structuré, évaluations régulières et projet professionnel concret pour chaque apprenant.</p></div>
-      <div class="diff-card fade-in delay-1"><span class="diff-icon">🏆</span><div class="diff-title">Encadrement stagiaires</div><p class="diff-desc">Système d'évaluation, suivi mensuel et projet professionnel concret pour chaque stagiaire.</p></div>
-      <div class="diff-card fade-in delay-2"><span class="diff-icon">🌐</span><div class="diff-title">Vision internationale</div><p class="diff-desc">Programmes adaptés aux réalités du Burkina Faso tout en respectant les standards internationaux.</p></div>
-      <div class="diff-card fade-in delay-3"><span class="diff-icon">🎤</span><div class="diff-title">Art oratoire & Interviews</div><p class="diff-desc">Préparation spécifique aux interviews professionnelles et prise de parole en public en anglais.</p></div>
+      <div class="diff-card fade-in d1">
+        <span class="diff-icon">💼</span>
+        <div class="diff-title">Orientation Business & Employabilité</div>
+        <p class="diff-desc">Nous ne faisons pas seulement apprendre l'anglais — nous préparons nos apprenants à l'utiliser dans un contexte professionnel réel.</p>
+      </div>
+      <div class="diff-card fade-in d2">
+        <span class="diff-icon">🎭</span>
+        <div class="diff-title">Pédagogie pratique & interactive</div>
+        <p class="diff-desc">Jeux de rôles, simulations d'entretiens, présentations professionnelles, études de cas — l'apprentissage par l'action.</p>
+      </div>
+      <div class="diff-card fade-in d3">
+        <span class="diff-icon">📊</span>
+        <div class="diff-title">Suivi personnalisé</div>
+        <p class="diff-desc">Chaque apprenant bénéficie d'un accompagnement structuré, d'évaluations régulières et d'un projet professionnel concret.</p>
+      </div>
+      <div class="diff-card fade-in d1">
+        <span class="diff-icon">🏆</span>
+        <div class="diff-title">Encadrement structuré des stagiaires</div>
+        <p class="diff-desc">Système d'évaluation, suivi mensuel et projet professionnel concret pour chaque stagiaire accompagné par notre centre.</p>
+      </div>
+      <div class="diff-card fade-in d2">
+        <span class="diff-icon">🌐</span>
+        <div class="diff-title">Vision locale, ambition internationale</div>
+        <p class="diff-desc">Programmes adaptés aux réalités du Burkina Faso tout en respectant les standards internationaux de certification.</p>
+      </div>
+      <div class="diff-card fade-in d3">
+        <span class="diff-icon">🎤</span>
+        <div class="diff-title">Art oratoire & Interviews</div>
+        <p class="diff-desc">Préparation spécifique aux interviews professionnelles et développement des techniques de prise de parole en public.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -179,51 +587,143 @@ const files = {
 <section class="formations" id="formations">
   <div class="container">
     <div class="form-header fade-in">
-      <div><div class="sec-eyebrow">Ce que nous proposons</div><h2 class="sec-title">Nos programmes <em>de formation</em></h2></div>
+      <div>
+        <div class="sec-eyebrow">Ce que nous proposons</div>
+        <h2 class="sec-title">Nos programmes<br><em>de formation</em></h2>
+      </div>
       <a href="#contact" class="btn-primary">Demander un devis ›</a>
     </div>
     <div class="form-grid">
-      <div class="form-card fade-in delay-1"><span class="form-icon">👤</span><div class="form-card-title">Cours particuliers</div><p class="form-desc">Un formateur dédié, un programme 100% sur mesure. Progressez à votre rythme avec un accompagnement individuel complet.</p><div class="form-tags"><span class="form-tag">Tous niveaux</span><span class="form-tag">Flexible</span><span class="form-tag">Présentiel & En ligne</span></div></div>
-      <div class="form-card fade-in delay-2"><span class="form-icon">👥</span><div class="form-card-title">Cours en groupe</div><p class="form-desc">Apprenez en interagissant avec d'autres apprenants dans une dynamique collaborative stimulante.</p><div class="form-tags"><span class="form-tag">A1 → C2</span><span class="form-tag">Sessions régulières</span></div></div>
-      <div class="form-card fade-in delay-3"><span class="form-icon">🏢</span><div class="form-card-title">Formation en entreprise</div><p class="form-desc">Programmes intra-entreprise adaptés à votre secteur. Devis personnalisé sur demande.</p><div class="form-tags"><span class="form-tag">B2B</span><span class="form-tag">Sur site</span><span class="form-tag">Sur mesure</span></div></div>
-      <div class="form-card fade-in delay-1"><span class="form-icon">💻</span><div class="form-card-title">Cours en ligne</div><p class="form-desc">Sessions live en visioconférence. Toute la qualité STONEBRIDGE, sans contrainte géographique.</p><div class="form-tags"><span class="form-tag">Live</span><span class="form-tag">Flexible</span></div></div>
-      <div class="form-card fade-in delay-2"><span class="form-icon">🏅</span><div class="form-card-title">Certifications</div><p class="form-desc">Préparation ciblée pour maximiser votre score aux examens TOEFL et TOEIC reconnus internationalement.</p><div class="form-tags"><span class="form-tag">TOEFL</span><span class="form-tag">TOEIC</span></div></div>
-      <div class="form-card fade-in delay-3"><span class="form-icon">🎤</span><div class="form-card-title">Art oratoire & Interviews</div><p class="form-desc">Maîtrisez la prise de parole professionnelle et préparez-vous aux entretiens avec confiance.</p><div class="form-tags"><span class="form-tag">Prise de parole</span><span class="form-tag">Employabilité</span></div></div>
+      <div class="form-card fade-in d1">
+        <span class="form-card-icon">👤</span>
+        <div class="form-card-title">Cours particuliers</div>
+        <p class="form-card-desc">Un formateur dédié, un programme 100% sur mesure. Progressez à votre rythme avec un accompagnement individuel complet.</p>
+        <div class="form-tags">
+          <span class="form-tag">Tous niveaux</span>
+          <span class="form-tag">Flexible</span>
+          <span class="form-tag">Présentiel & En ligne</span>
+        </div>
+      </div>
+      <div class="form-card fade-in d2">
+        <span class="form-card-icon">👥</span>
+        <div class="form-card-title">Cours en groupe</div>
+        <p class="form-card-desc">Apprenez en interagissant avec d'autres apprenants. Une dynamique collaborative stimulante et enrichissante.</p>
+        <div class="form-tags">
+          <span class="form-tag">A1 → C2</span>
+          <span class="form-tag">Sessions régulières</span>
+        </div>
+      </div>
+      <div class="form-card fade-in d3">
+        <span class="form-card-icon">🏢</span>
+        <div class="form-card-title">Formation en entreprise</div>
+        <p class="form-card-desc">Renforcez les compétences de vos équipes avec des programmes intra-entreprise adaptés à votre secteur d'activité.</p>
+        <div class="form-tags">
+          <span class="form-tag">B2B</span>
+          <span class="form-tag">Sur site</span>
+          <span class="form-tag">Devis personnalisé</span>
+        </div>
+      </div>
+      <div class="form-card fade-in d1">
+        <span class="form-card-icon">💻</span>
+        <div class="form-card-title">Cours en ligne</div>
+        <p class="form-card-desc">Sessions live en visioconférence depuis où vous êtes. Toute la qualité STONEBRIDGE, sans contrainte géographique.</p>
+        <div class="form-tags">
+          <span class="form-tag">Live</span>
+          <span class="form-tag">Flexible</span>
+          <span class="form-tag">Visioconférence</span>
+        </div>
+      </div>
+      <div class="form-card fade-in d2">
+        <span class="form-card-icon">🏅</span>
+        <div class="form-card-title">Préparation aux certifications</div>
+        <p class="form-card-desc">Programmes ciblés pour maximiser votre score aux examens internationaux reconnus par les employeurs du monde entier.</p>
+        <div class="form-tags">
+          <span class="form-tag">TOEFL</span>
+          <span class="form-tag">TOEIC</span>
+          <span class="form-tag">Certifiant</span>
+        </div>
+      </div>
+      <div class="form-card fade-in d3">
+        <span class="form-card-icon">🎤</span>
+        <div class="form-card-title">Art oratoire & Interviews</div>
+        <p class="form-card-desc">Maîtrisez la prise de parole professionnelle en anglais et préparez-vous aux entretiens d'embauche avec confiance.</p>
+        <div class="form-tags">
+          <span class="form-tag">Prise de parole</span>
+          <span class="form-tag">Entretiens</span>
+          <span class="form-tag">Employabilité</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- PUBLIC -->
+<!-- PUBLIC CIBLE -->
 <section class="public">
   <div class="container">
-    <div class="sec-center fade-in">
-      <div class="sec-eyebrow center">Pour qui ?</div>
-      <h2 class="sec-title light center">Nos formations s'adressent <em style="color:var(--blue-light)">à tous les profils</em></h2>
+    <div class="fade-in" style="text-align:center">
+      <div class="sec-eyebrow" style="color:var(--gold);justify-content:center">Pour qui ?</div>
+      <h2 class="sec-title light center">Nos formations s'adressent<br><em style="color:var(--gold)">à tous les profils</em></h2>
       <div class="sec-line"></div>
     </div>
     <div class="pub-grid">
-      <div class="pub-card fade-in delay-1"><span>🧒</span><div class="pub-name">Enfants</div><div class="pub-desc">Moins de 12 ans</div></div>
-      <div class="pub-card fade-in delay-2"><span>🧑‍🎓</span><div class="pub-name">Adolescents</div><div class="pub-desc">12 – 17 ans</div></div>
-      <div class="pub-card fade-in delay-3"><span>🎓</span><div class="pub-name">Étudiants</div><div class="pub-desc">Toutes filières</div></div>
-      <div class="pub-card fade-in delay-4"><span>💼</span><div class="pub-name">Professionnels</div><div class="pub-desc">Adultes en activité</div></div>
-      <div class="pub-card fade-in delay-5"><span>🏦</span><div class="pub-name">Entreprises</div><div class="pub-desc">Formation B2B</div></div>
+      <div class="pub-card fade-in d1">
+        <span class="pub-icon">🧒</span>
+        <div class="pub-name">Enfants</div>
+        <div class="pub-desc">Moins de 12 ans</div>
+      </div>
+      <div class="pub-card fade-in d2">
+        <span class="pub-icon">🧑‍🎓</span>
+        <div class="pub-name">Adolescents</div>
+        <div class="pub-desc">12 – 17 ans</div>
+      </div>
+      <div class="pub-card fade-in d3">
+        <span class="pub-icon">🎓</span>
+        <div class="pub-name">Étudiants</div>
+        <div class="pub-desc">Toutes filières</div>
+      </div>
+      <div class="pub-card fade-in d4">
+        <span class="pub-icon">💼</span>
+        <div class="pub-name">Professionnels</div>
+        <div class="pub-desc">Adultes en activité</div>
+      </div>
+      <div class="pub-card fade-in d5">
+        <span class="pub-icon">🏦</span>
+        <div class="pub-name">Entreprises</div>
+        <div class="pub-desc">Formation B2B</div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- DURÉES -->
-<section class="durees">
+<section class="durees" style="padding-top:4rem;padding-bottom:4rem">
   <div class="container">
-    <div class="sec-center fade-in">
-      <div class="sec-eyebrow center">Flexibilité</div>
-      <h2 class="sec-title center">Des formats adaptés <em>à votre emploi du temps</em></h2>
+    <div class="fade-in" style="text-align:center;margin-bottom:.5rem">
+      <div class="sec-eyebrow" style="justify-content:center">Flexibilité</div>
+      <h2 class="sec-title center">Des formats adaptés<br><em>à votre emploi du temps</em></h2>
       <div class="sec-line"></div>
     </div>
     <div class="dur-grid">
-      <div class="dur-card fade-in delay-1"><div class="dur-num">2</div><div class="dur-unit">semaines</div><div class="dur-label">Session intensive</div></div>
-      <div class="dur-card fade-in delay-2"><div class="dur-num">3</div><div class="dur-unit">mois</div><div class="dur-label">Programme court</div></div>
-      <div class="dur-card fade-in delay-3"><div class="dur-num">6</div><div class="dur-unit">mois</div><div class="dur-label">Programme standard</div></div>
-      <div class="dur-card fade-in delay-4"><div class="dur-num">∞</div><div class="dur-unit">flexible</div><div class="dur-label">Sur mesure entreprise</div></div>
+      <div class="dur-card fade-in d1">
+        <div class="dur-num">2</div>
+        <div class="dur-unit">semaines</div>
+        <div class="dur-label">Session intensive</div>
+      </div>
+      <div class="dur-card fade-in d2">
+        <div class="dur-num">3</div>
+        <div class="dur-unit">mois</div>
+        <div class="dur-label">Programme court</div>
+      </div>
+      <div class="dur-card fade-in d3">
+        <div class="dur-num">6</div>
+        <div class="dur-unit">mois</div>
+        <div class="dur-label">Programme standard</div>
+      </div>
+      <div class="dur-card fade-in d4">
+        <div class="dur-num">∞</div>
+        <div class="dur-unit">flexible</div>
+        <div class="dur-label">Sur mesure entreprise</div>
+      </div>
     </div>
   </div>
 </section>
@@ -231,23 +731,44 @@ const files = {
 <!-- TÉMOIGNAGES -->
 <section class="testi" id="temoignages">
   <div class="container">
-    <div class="sec-center fade-in">
-      <div class="sec-eyebrow center">Ils nous font confiance</div>
-      <h2 class="sec-title center">Ce que disent <em>nos apprenants</em></h2>
+    <div class="fade-in" style="text-align:center">
+      <div class="sec-eyebrow" style="justify-content:center">Ils nous font confiance</div>
+      <h2 class="sec-title center">Ce que disent<br><em>nos apprenants</em></h2>
       <div class="sec-line"></div>
     </div>
     <div class="testi-grid">
-      <div class="testi-card fade-in delay-1">
+      <div class="testi-card fade-in d1">
         <p class="testi-text">Grâce à STONEBRIDGE, j'ai décroché un poste dans une multinationale. La formation en anglais des affaires m'a donné une vraie confiance en entretien.</p>
-        <div class="testi-author"><div class="testi-avatar">AK</div><div><div class="testi-name">Aminata K.</div><div class="testi-role">Chargée de communication, Ouagadougou</div><div class="testi-stars">★★★★★</div></div></div>
+        <div class="testi-author">
+          <div class="testi-avatar">AK</div>
+          <div>
+            <div class="testi-name">Aminata K.</div>
+            <div class="testi-role">Chargée de communication, Ouagadougou</div>
+            <div class="testi-stars">★★★★★</div>
+          </div>
+        </div>
       </div>
-      <div class="testi-card fade-in delay-2">
-        <p class="testi-text">La pédagogie pratique est vraiment différente. Les simulations d'entretiens et les jeux de rôles m'ont préparé à des situations réelles dès le premier jour.</p>
-        <div class="testi-author"><div class="testi-avatar">SO</div><div><div class="testi-name">Samuel O.</div><div class="testi-role">Étudiant en Master, Ouagadougou</div><div class="testi-stars">★★★★★</div></div></div>
+      <div class="testi-card fade-in d2">
+        <p class="testi-text">La pédagogie pratique de STONEBRIDGE est vraiment différente. Les simulations d'entretiens et les jeux de rôles m'ont préparé à des situations réelles.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">SO</div>
+          <div>
+            <div class="testi-name">Samuel O.</div>
+            <div class="testi-role">Étudiant en Master, Université de Ouagadougou</div>
+            <div class="testi-stars">★★★★★</div>
+          </div>
+        </div>
       </div>
-      <div class="testi-card fade-in delay-3">
-        <p class="testi-text">Nous avons formé nos équipes commerciales en 3 mois. Le résultat était remarquable et nos collaborateurs communiquent désormais avec aisance en anglais.</p>
-        <div class="testi-author"><div class="testi-avatar">FD</div><div><div class="testi-name">Fatou D.</div><div class="testi-role">Directrice RH, Cabinet conseil</div><div class="testi-stars">★★★★★</div></div></div>
+      <div class="testi-card fade-in d3">
+        <p class="testi-text">Nous avons fait appel à STONEBRIDGE pour former nos équipes commerciales. Résultat remarquable en seulement 3 mois. Je recommande vivement.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">FD</div>
+          <div>
+            <div class="testi-name">Fatou D.</div>
+            <div class="testi-role">Directrice RH, Cabinet conseil Ouagadougou</div>
+            <div class="testi-stars">★★★★★</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -256,8 +777,11 @@ const files = {
 <!-- CTA -->
 <div class="cta-band">
   <div class="cta-inner">
-    <div><div class="cta-lbl">Première séance offerte</div><div class="cta-title">Prêt à franchir<br>le cap linguistique ?</div></div>
-    <div class="cta-btns">
+    <div>
+      <div class="cta-lbl">Première séance offerte</div>
+      <div class="cta-title">Prêt à franchir<br>le cap linguistique ?</div>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap">
       <a href="#contact" class="btn-dark">Réserver mon cours d'essai</a>
       <a href="tel:+22600000000" class="btn-outline-dark">Nous appeler</a>
     </div>
@@ -269,32 +793,104 @@ const files = {
   <div class="container">
     <div class="contact-inner">
       <div class="fade-in">
-        <div class="sec-eyebrow">Prendre contact</div>
-        <h2 class="sec-title light">Commencez votre <em>parcours dès aujourd'hui</em></h2>
-        <p class="contact-desc">Réservez votre cours d'essai gratuit ou demandez un devis. Notre équipe vous répond rapidement.</p>
+        <div class="sec-eyebrow" style="color:var(--gold)">Prendre contact</div>
+        <h2 class="sec-title light">Commencez votre<br><em>parcours dès aujourd'hui</em></h2>
+        <p class="contact-desc">Réservez votre cours d'essai gratuit ou demandez un devis personnalisé. Notre équipe vous répond rapidement.</p>
         <div class="contact-details">
-          <div class="c-item"><div class="c-icon">📍</div><div><div class="c-lbl">Adresse</div><div class="c-val">1200 Logements, Ouagadougou, Burkina Faso</div></div></div>
-          <div class="c-item"><div class="c-icon">📞</div><div><div class="c-lbl">Téléphone</div><div class="c-val">+226 00 00 00 00</div></div></div>
-          <div class="c-item"><div class="c-icon">✉️</div><div><div class="c-lbl">Email</div><div class="c-val">contact@stonebridge-bf.com</div></div></div>
-          <div class="c-item"><div class="c-icon">🕐</div><div><div class="c-lbl">Horaires</div><div class="c-val">Lun – Sam · 08h00 – 19h00</div></div></div>
+          <div class="c-item">
+            <div class="c-icon">📍</div>
+            <div>
+              <div class="c-lbl">Adresse</div>
+              <div class="c-val">1200 Logements, Ouagadougou, Burkina Faso</div>
+            </div>
+          </div>
+          <div class="c-item">
+            <div class="c-icon">📞</div>
+            <div>
+              <div class="c-lbl">Téléphone</div>
+              <div class="c-val">+226 00 00 00 00</div>
+            </div>
+          </div>
+          <div class="c-item">
+            <div class="c-icon">✉️</div>
+            <div>
+              <div class="c-lbl">Email</div>
+              <div class="c-val">contact@stonebridge-bf.com</div>
+            </div>
+          </div>
+          <div class="c-item">
+            <div class="c-icon">🕐</div>
+            <div>
+              <div class="c-lbl">Horaires</div>
+              <div class="c-val">Lun – Sam · 08h00 – 19h00</div>
+            </div>
+          </div>
         </div>
-        <div class="social-row">
-          <a href="#" class="soc-link" title="Facebook">f</a>
-          <a href="#" class="soc-link" title="TikTok">tt</a>
+        <div>
+          <div class="c-lbl" style="margin-bottom:.6rem">Nos réseaux sociaux</div>
+          <div class="social-row">
+            <a href="#" class="soc-link" title="Facebook">f</a>
+            <a href="#" class="soc-link" title="TikTok">tt</a>
+          </div>
         </div>
       </div>
-      <div class="contact-form fade-in delay-2">
+      <div class="fade-in d2">
         <div class="form-row">
-          <div class="form-group"><label>Prénom</label><input type="text" placeholder="Votre prénom"></div>
-          <div class="form-group"><label>Nom</label><input type="text" placeholder="Votre nom"></div>
+          <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" placeholder="Votre prénom">
+          </div>
+          <div class="form-group">
+            <label>Nom</label>
+            <input type="text" placeholder="Votre nom">
+          </div>
         </div>
-        <div class="form-group"><label>Email</label><input type="email" placeholder="votre@email.com"></div>
-        <div class="form-group"><label>Téléphone</label><input type="tel" placeholder="+226 00 00 00 00"></div>
-        <div class="form-group"><label>Profil</label><select><option value="">Vous êtes…</option><option>Enfant (moins de 12 ans)</option><option>Adolescent (12–17 ans)</option><option>Étudiant</option><option>Professionnel en activité</option><option>Entreprise (B2B)</option></select></div>
-        <div class="form-group"><label>Format souhaité</label><select><option value="">Choisissez un format…</option><option>Cours particuliers</option><option>Cours en groupe</option><option>Formation en entreprise</option><option>Cours en ligne</option><option>Préparation TOEFL / TOEIC</option><option>Art oratoire & Interviews</option></select></div>
-        <div class="form-group"><label>Durée envisagée</label><select><option value="">Durée…</option><option>Session intensive (2 semaines)</option><option>Programme court (3 mois)</option><option>Programme standard (6 mois)</option><option>Sur mesure</option></select></div>
-        <div class="form-group"><label>Message</label><textarea rows="3" placeholder="Votre niveau actuel, vos objectifs…"></textarea></div>
-        <button class="btn-submit" type="button">Envoyer ma demande ›</button>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" placeholder="votre@email.com">
+        </div>
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="tel" placeholder="+226 00 00 00 00">
+        </div>
+        <div class="form-group">
+          <label>Profil</label>
+          <select>
+            <option value="">Vous êtes…</option>
+            <option>Enfant (moins de 12 ans)</option>
+            <option>Adolescent (12–17 ans)</option>
+            <option>Étudiant</option>
+            <option>Professionnel en activité</option>
+            <option>Entreprise (formation B2B)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Format souhaité</label>
+          <select>
+            <option value="">Choisissez un format…</option>
+            <option>Cours particuliers</option>
+            <option>Cours en groupe</option>
+            <option>Formation en entreprise</option>
+            <option>Cours en ligne</option>
+            <option>Préparation TOEFL / TOEIC</option>
+            <option>Art oratoire & Interviews</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Durée envisagée</label>
+          <select>
+            <option value="">Durée…</option>
+            <option>Session intensive (2 semaines)</option>
+            <option>Programme court (3 mois)</option>
+            <option>Programme standard (6 mois)</option>
+            <option>Sur mesure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Message (optionnel)</label>
+          <textarea rows="3" placeholder="Votre niveau actuel, vos objectifs, vos disponibilités…"></textarea>
+        </div>
+        <button class="btn-submit">Envoyer ma demande ›</button>
       </div>
     </div>
   </div>
@@ -302,974 +898,55 @@ const files = {
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-top container">
-    <div class="f-brand">
+  <div class="footer-top">
+    <div>
       <div class="f-logo">Stone<span>bridge</span></div>
       <p class="f-tagline">« Former des leaders bilingues compétitifs à l'international. »</p>
     </div>
-    <div class="f-col"><h4>Formations</h4><ul><li><a href="#">Cours particuliers</a></li><li><a href="#">Cours en groupe</a></li><li><a href="#">Formation en entreprise</a></li><li><a href="#">Cours en ligne</a></li><li><a href="#">TOEFL / TOEIC</a></li><li><a href="#">Art oratoire</a></li></ul></div>
-    <div class="f-col"><h4>Le centre</h4><ul><li><a href="#about">À propos</a></li><li><a href="#formations">Nos programmes</a></li><li><a href="#temoignages">Témoignages</a></li><li><a href="#contact">Contact & Inscription</a></li></ul></div>
+    <div class="f-col">
+      <h4>Formations</h4>
+      <ul>
+        <li><a href="#">Cours particuliers</a></li>
+        <li><a href="#">Cours en groupe</a></li>
+        <li><a href="#">Formation en entreprise</a></li>
+        <li><a href="#">Cours en ligne</a></li>
+        <li><a href="#">Préparation TOEFL / TOEIC</a></li>
+        <li><a href="#">Art oratoire & Interviews</a></li>
+      </ul>
+    </div>
+    <div class="f-col">
+      <h4>Le centre</h4>
+      <ul>
+        <li><a href="#about">À propos</a></li>
+        <li><a href="#formations">Nos programmes</a></li>
+        <li><a href="#temoignages">Témoignages</a></li>
+        <li><a href="#contact">Contact & Inscription</a></li>
+      </ul>
+    </div>
   </div>
-  <div class="footer-bottom container">
+  <div class="footer-bottom">
     <span class="f-copy">© 2025 STONEBRIDGE Centre de Formation Linguistique. Tous droits réservés.</span>
     <span class="f-adrs">1200 Logements, Ouagadougou, Burkina Faso</span>
   </div>
 </footer>
 
-<script src="assets/js/main.js"></script>
+<script>
+  // Scroll fade-in
+  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:.1});
+  document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
+
+  // Nav shadow
+  window.addEventListener('scroll', () => {
+    document.querySelector('nav').style.boxShadow = window.scrollY > 50 ? '0 4px 30px rgba(0,0,0,.35)' : 'none';
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const t = document.querySelector(a.getAttribute('href'));
+      if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+    });
+  });
+</script>
 </body>
-</html>`,
-
-  "assets/css/style.css": `/* ==============================
-   STONEBRIDGE — style.css
-   Palette : Bleu marine + Bleu électrique + Or
-   ============================== */
-
-:root {
-  --blue-dark:   #0A1628;
-  --blue-mid:    #0D2347;
-  --blue:        #1565C0;
-  --blue-light:  #42A5F5;
-  --blue-glow:   #1E88E5;
-  --gold:        #F5A623;
-  --gold-light:  #FFD166;
-  --cream:       #F0F6FF;
-  --cream-dark:  #DDE9F8;
-  --white:       #FFFFFF;
-  --text:        #0D1B2A;
-  --muted:       #5C7A9E;
-}
-
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
-::-webkit-scrollbar { width:5px; }
-::-webkit-scrollbar-track { background:var(--cream-dark); }
-::-webkit-scrollbar-thumb { background:var(--blue-light); border-radius:3px; }
-
-/* ── NAV */
-#navbar {
-  position:fixed; top:0; left:0; right:0; z-index:200;
-  height:70px; display:flex; align-items:center;
-  background:rgba(10,22,40,0.97); backdrop-filter:blur(14px);
-  border-bottom:1px solid rgba(66,165,245,0.2);
-  transition:box-shadow .3s;
-}
-.nav-inner {
-  max-width:1200px; margin:0 auto; width:100%;
-  padding:0 2rem; display:flex; align-items:center; justify-content:space-between;
-}
-.nav-logo {
-  font-family:'Cormorant Garamond',serif; font-weight:700;
-  font-size:1.5rem; color:var(--white); letter-spacing:.12em;
-  text-transform:uppercase; text-decoration:none;
-}
-.nav-logo span { color:var(--blue-light); }
-.nav-links { display:flex; gap:2rem; list-style:none; }
-.nav-links a {
-  color:rgba(255,255,255,.7); text-decoration:none;
-  font-size:.78rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
-  position:relative; transition:color .2s;
-}
-.nav-links a::after {
-  content:''; position:absolute; bottom:-4px; left:0; right:0;
-  height:1px; background:var(--blue-light); transform:scaleX(0); transition:transform .3s;
-}
-.nav-links a:hover { color:var(--blue-light); }
-.nav-links a:hover::after { transform:scaleX(1); }
-.nav-cta {
-  background:var(--blue) !important; color:var(--white) !important;
-  padding:.5rem 1.4rem; border-radius:4px;
-  font-weight:500 !important; transition:background .2s, transform .2s !important;
-}
-.nav-cta:hover { background:var(--blue-glow) !important; transform:translateY(-1px); }
-.nav-cta::after { display:none !important; }
-.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
-.hamburger span { width:24px; height:1.5px; background:var(--white); transition:all .3s; }
-
-/* ── HERO */
-.hero {
-  min-height:100vh; background:var(--blue-dark);
-  display:flex; align-items:center; position:relative; overflow:hidden; padding-top:70px;
-}
-.hero-bg {
-  position:absolute; inset:0;
-  background:
-    radial-gradient(ellipse 70% 60% at 65% 40%, rgba(21,101,192,.25) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 80% at 10% 80%, rgba(13,35,71,.8) 0%, transparent 50%),
-    radial-gradient(ellipse 30% 40% at 90% 10%, rgba(66,165,245,.1) 0%, transparent 50%);
-}
-.hero-grid {
-  position:absolute; inset:0; opacity:.04;
-  background-image:
-    linear-gradient(rgba(66,165,245,1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(66,165,245,1) 1px, transparent 1px);
-  background-size:60px 60px;
-}
-.hero-content {
-  position:relative; z-index:2; max-width:1200px;
-  margin:0 auto; width:100%; padding:0 2rem;
-  display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center;
-}
-.hero-eyebrow {
-  display:inline-flex; align-items:center; gap:.6rem;
-  color:var(--blue-light); font-size:.72rem; letter-spacing:.2em;
-  text-transform:uppercase; font-weight:500; margin-bottom:1.2rem;
-}
-.hero-eyebrow::before { content:''; width:28px; height:1px; background:var(--blue-light); }
-.hero-title {
-  font-family:'Cormorant Garamond',serif; font-weight:300;
-  font-size:clamp(2.8rem,5vw,4.5rem); color:var(--white); line-height:1.08; margin-bottom:1.2rem;
-}
-.hero-title em { font-style:italic; color:var(--blue-light); display:block; }
-.hero-desc {
-  color:rgba(255,255,255,.65); font-size:.95rem; line-height:1.8;
-  max-width:480px; margin-bottom:2rem; font-weight:300;
-}
-.hero-actions { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
-.btn-primary {
-  background:var(--blue); color:var(--white);
-  padding:.85rem 2rem; font-family:'DM Sans',sans-serif;
-  font-size:.8rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
-  text-decoration:none; transition:all .25s; border-radius:4px;
-  display:inline-flex; align-items:center; gap:.4rem;
-  box-shadow:0 4px 20px rgba(21,101,192,.4);
-}
-.btn-primary:hover { background:var(--blue-glow); transform:translateY(-2px); box-shadow:0 8px 30px rgba(21,101,192,.5); }
-.btn-ghost {
-  color:rgba(255,255,255,.7); font-size:.8rem; letter-spacing:.1em;
-  text-transform:uppercase; text-decoration:none; font-weight:500;
-  display:inline-flex; align-items:center; gap:.4rem; transition:color .2s;
-}
-.btn-ghost:hover { color:var(--blue-light); }
-.hero-stats {
-  display:flex; gap:2rem; margin-top:3rem; padding-top:2.5rem;
-  border-top:1px solid rgba(255,255,255,.1); flex-wrap:wrap;
-}
-.stat-num {
-  font-family:'Cormorant Garamond',serif; font-size:2.2rem;
-  font-weight:600; color:var(--blue-light); line-height:1;
-}
-.stat-label { font-size:.7rem; color:rgba(255,255,255,.45); letter-spacing:.08em; text-transform:uppercase; margin-top:.25rem; }
-
-/* Hero Card */
-.hero-card {
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(66,165,245,.25);
-  padding:2.5rem; position:relative;
-  border-radius:8px;
-  box-shadow:0 20px 60px rgba(0,0,0,.3), inset 0 1px 0 rgba(66,165,245,.1);
-  animation:floatCard 6s ease-in-out infinite;
-}
-.hero-card::before {
-  content:''; position:absolute; top:-1px; left:2rem; right:2rem;
-  height:2px; background:linear-gradient(90deg,transparent,var(--blue-light),transparent);
-}
-.card-tags { margin-bottom:1rem; }
-.card-tag {
-  display:inline-block; background:rgba(66,165,245,.12);
-  border:1px solid rgba(66,165,245,.3); color:var(--blue-light);
-  font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
-  padding:.28rem .7rem; margin-right:.4rem; margin-bottom:.4rem; border-radius:3px;
-}
-.card-title { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-weight:600; color:var(--white); margin-bottom:.4rem; }
-.card-sub { color:rgba(255,255,255,.45); font-size:.78rem; margin-bottom:1.5rem; }
-.card-levels { display:flex; flex-direction:column; gap:.55rem; margin-bottom:1.5rem; }
-.level-label { display:flex; justify-content:space-between; font-size:.7rem; color:rgba(255,255,255,.5); margin-bottom:.2rem; }
-.level-track { height:3px; background:rgba(255,255,255,.08); border-radius:2px; overflow:hidden; }
-.level-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--blue-light)); animation:fillBar 1.5s ease forwards; }
-.card-cta {
-  width:100%; background:rgba(21,101,192,.25);
-  border:1px solid rgba(66,165,245,.4); color:var(--blue-light);
-  padding:.8rem; font-family:'DM Sans',sans-serif;
-  font-size:.78rem; letter-spacing:.1em; text-transform:uppercase;
-  cursor:pointer; font-weight:500; transition:all .2s; border-radius:4px;
-}
-.card-cta:hover { background:var(--blue); color:var(--white); }
-
-/* ── SECTIONS COMMUNES */
-section { padding:6rem 2rem; }
-.container { max-width:1200px; margin:0 auto; }
-.sec-eyebrow {
-  display:inline-flex; align-items:center; gap:.6rem;
-  color:var(--blue-light); font-size:.7rem; letter-spacing:.2em;
-  text-transform:uppercase; font-weight:500; margin-bottom:.8rem;
-}
-.sec-eyebrow::before { content:''; width:22px; height:1px; background:var(--blue-light); }
-.sec-eyebrow.center { justify-content:center; }
-.sec-title {
-  font-family:'Cormorant Garamond',serif; font-weight:300;
-  font-size:clamp(2rem,3.5vw,3rem); line-height:1.15; color:var(--text);
-}
-.sec-title em { font-style:italic; color:var(--blue); }
-.sec-title.light { color:var(--white); }
-.sec-title.light em { color:var(--blue-light); }
-.sec-title.center { text-align:center; }
-.sec-center { text-align:center; margin-bottom:3rem; }
-.sec-line { width:40px; height:2px; background:var(--blue-light); margin:.6rem auto 2rem; }
-
-/* ── À PROPOS */
-.about { background:var(--white); position:relative; overflow:hidden; }
-.about::before {
-  content:'STONEBRIDGE';
-  position:absolute; right:-3rem; top:50%; transform:translateY(-50%);
-  font-family:'Cormorant Garamond',serif; font-size:9rem; font-weight:700;
-  color:rgba(21,101,192,.04); pointer-events:none; white-space:nowrap;
-}
-.about-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
-.about-visual {
-  background:linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 60%, #1565C0 100%);
-  aspect-ratio:4/5; position:relative; display:flex; align-items:center; justify-content:center;
-  border-radius:4px; overflow:hidden;
-}
-.about-visual::after {
-  content:''; position:absolute; inset:0;
-  background:radial-gradient(ellipse at 30% 70%, rgba(66,165,245,.15), transparent 60%);
-}
-.about-img-placeholder {
-  font-family:'Cormorant Garamond',serif; font-size:6rem;
-  font-weight:300; color:rgba(66,165,245,.35); letter-spacing:.05em; position:relative; z-index:1;
-}
-.about-badge {
-  position:absolute; bottom:-1.5rem; right:-1.5rem;
-  background:var(--blue); padding:1.5rem; text-align:center;
-  box-shadow:0 10px 30px rgba(21,101,192,.4); z-index:2;
-}
-.badge-num { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:700; color:var(--white); line-height:1; }
-.badge-txt { font-size:.65rem; color:rgba(255,255,255,.8); text-transform:uppercase; letter-spacing:.1em; margin-top:.2rem; }
-.about-text { color:var(--muted); line-height:1.85; font-size:.93rem; font-weight:300; margin:1.2rem 0; }
-.about-values { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
-.val-item {
-  padding:1rem 1.1rem; border:1px solid rgba(21,101,192,.1);
-  border-left:3px solid var(--blue-light); background:var(--cream); transition:all .2s; border-radius:2px;
-}
-.val-item:hover { background:var(--cream-dark); transform:translateX(4px); }
-.val-title { font-size:.82rem; font-weight:500; color:var(--blue-dark); margin-bottom:.2rem; }
-.val-desc { font-size:.72rem; color:var(--muted); line-height:1.5; }
-
-/* ── MISSION */
-.mission { background:var(--blue-dark); }
-.mv-grid { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; }
-.mv-card {
-  padding:2.5rem; border:1px solid rgba(66,165,245,.2);
-  position:relative; border-radius:8px;
-  background:rgba(255,255,255,.03);
-  backdrop-filter:blur(4px);
-  transition:all .3s;
-}
-.mv-card:hover { border-color:rgba(66,165,245,.4); background:rgba(21,101,192,.08); }
-.mv-card::before {
-  content:''; position:absolute; top:-1px; left:2rem; right:2rem;
-  height:2px; background:linear-gradient(90deg,transparent,var(--blue-light),transparent);
-}
-.mv-icon { font-size:2rem; margin-bottom:1rem; display:block; }
-.mv-card-title {
-  font-family:'Cormorant Garamond',serif; font-size:1.6rem;
-  font-weight:600; color:var(--blue-light); margin-bottom:1rem;
-}
-.mv-card p { color:rgba(255,255,255,.65); font-size:.88rem; line-height:1.8; margin-bottom:.8rem; }
-.mv-list { list-style:none; display:flex; flex-direction:column; gap:.6rem; }
-.mv-list li {
-  font-size:.85rem; color:rgba(255,255,255,.65);
-  display:flex; align-items:flex-start; gap:.6rem;
-}
-.mv-list li::before { content:'→'; color:var(--blue-light); flex-shrink:0; }
-
-/* ── DIFFÉRENCIATION */
-.diff { background:var(--cream); }
-.diff-grid {
-  display:grid; grid-template-columns:repeat(3,1fr);
-  gap:1.5px; background:rgba(21,101,192,.1);
-  margin-top:0; border-radius:4px; overflow:hidden;
-}
-.diff-card {
-  background:var(--white); padding:2.5rem; position:relative; overflow:hidden; transition:all .3s;
-}
-.diff-card::before {
-  content:''; position:absolute; top:0; left:0; right:0;
-  height:3px; background:var(--blue); transform:scaleX(0); transform-origin:left; transition:transform .3s;
-}
-.diff-card:hover { background:var(--blue-dark); }
-.diff-card:hover::before { transform:scaleX(1); }
-.diff-icon { font-size:2rem; margin-bottom:1.2rem; display:block; }
-.diff-title {
-  font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:600;
-  color:var(--blue-dark); margin-bottom:.7rem; transition:color .3s;
-}
-.diff-card:hover .diff-title { color:var(--white); }
-.diff-desc { font-size:.83rem; color:var(--muted); line-height:1.7; transition:color .3s; }
-.diff-card:hover .diff-desc { color:rgba(255,255,255,.6); }
-
-/* ── FORMATIONS */
-.formations { background:var(--white); }
-.form-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:3rem; flex-wrap:wrap; gap:1rem; }
-.form-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; }
-.form-card {
-  border:1px solid rgba(21,101,192,.1); padding:2rem;
-  background:var(--cream); transition:all .3s; border-radius:8px;
-  position:relative; overflow:hidden;
-}
-.form-card::after {
-  content:''; position:absolute; bottom:0; left:0; right:0;
-  height:2px; background:linear-gradient(90deg, var(--blue), var(--blue-light));
-  transform:scaleX(0); transition:transform .3s;
-}
-.form-card:hover { transform:translateY(-6px); box-shadow:0 20px 50px rgba(21,101,192,.12); border-color:rgba(21,101,192,.25); }
-.form-card:hover::after { transform:scaleX(1); }
-.form-icon { font-size:2rem; margin-bottom:1rem; display:block; }
-.form-card-title {
-  font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:600;
-  color:var(--blue-dark); margin-bottom:.6rem;
-}
-.form-desc { font-size:.82rem; color:var(--muted); line-height:1.7; margin-bottom:1rem; }
-.form-tags { display:flex; flex-wrap:wrap; gap:.4rem; }
-.form-tag {
-  font-size:.65rem; letter-spacing:.1em; text-transform:uppercase;
-  padding:.22rem .6rem; background:rgba(21,101,192,.08); color:var(--blue); font-weight:500; border-radius:3px;
-}
-
-/* ── PUBLIC */
-.public { background:var(--blue-mid); }
-.pub-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:1.5rem; }
-.pub-card {
-  padding:2rem 1.5rem; border:1px solid rgba(66,165,245,.15);
-  background:rgba(255,255,255,.04); text-align:center; transition:all .3s; border-radius:8px;
-  display:flex; flex-direction:column; align-items:center; gap:.5rem;
-}
-.pub-card:hover { border-color:rgba(66,165,245,.4); background:rgba(21,101,192,.3); transform:translateY(-4px); }
-.pub-card > span { font-size:2rem; }
-.pub-name { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:600; color:var(--white); }
-.pub-desc { font-size:.72rem; color:rgba(255,255,255,.5); }
-
-/* ── DURÉES */
-.durees { background:var(--cream); padding:5rem 2rem; }
-.dur-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; }
-.dur-card {
-  background:var(--white); padding:2rem 1.5rem; text-align:center;
-  border-bottom:3px solid var(--blue); transition:all .3s; border-radius:4px;
-  box-shadow:0 2px 10px rgba(21,101,192,.05);
-}
-.dur-card:hover { transform:translateY(-5px); box-shadow:0 15px 40px rgba(21,101,192,.15); border-bottom-color:var(--blue-light); }
-.dur-num {
-  font-family:'Cormorant Garamond',serif; font-size:2.8rem;
-  font-weight:700; color:var(--blue); line-height:1;
-}
-.dur-unit { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin:.3rem 0; }
-.dur-label { font-size:.82rem; color:var(--blue-dark); font-weight:500; }
-
-/* ── TÉMOIGNAGES */
-.testi { background:var(--white); }
-.testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; }
-.testi-card {
-  padding:2rem; background:var(--cream);
-  border:1px solid rgba(21,101,192,.08); position:relative; transition:all .3s; border-radius:8px;
-}
-.testi-card:hover { border-color:rgba(21,101,192,.25); box-shadow:0 10px 30px rgba(21,101,192,.1); }
-.testi-card::before {
-  content:'\\201C'; font-family:'Cormorant Garamond',serif;
-  font-size:5rem; color:var(--blue-light); opacity:.25;
-  position:absolute; top:.5rem; left:1.5rem; line-height:1;
-}
-.testi-text { font-size:.86rem; color:var(--muted); line-height:1.75; font-style:italic; padding-top:1.5rem; margin-bottom:1.2rem; }
-.testi-author { display:flex; align-items:center; gap:.75rem; }
-.testi-avatar {
-  width:40px; height:40px; border-radius:50%;
-  background:var(--blue); display:flex; align-items:center; justify-content:center;
-  font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:700; color:var(--white); flex-shrink:0;
-}
-.testi-name { font-size:.83rem; font-weight:500; color:var(--blue-dark); }
-.testi-role { font-size:.7rem; color:var(--muted); }
-.testi-stars { color:var(--gold); font-size:.72rem; margin-top:.15rem; }
-
-/* ── CTA BAND */
-.cta-band {
-  background:linear-gradient(135deg, var(--blue) 0%, var(--blue-glow) 60%, var(--blue-light) 100%);
-  padding:5rem 2rem; position:relative; overflow:hidden;
-}
-.cta-band::before {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 60%);
-}
-.cta-inner { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:2rem; flex-wrap:wrap; position:relative; z-index:1; }
-.cta-lbl { font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.7); margin-bottom:.4rem; }
-.cta-title { font-family:'Cormorant Garamond',serif; font-size:2.4rem; font-weight:600; color:var(--white); line-height:1.15; }
-.cta-btns { display:flex; gap:1rem; flex-wrap:wrap; }
-.btn-dark { background:var(--blue-dark); color:var(--white); padding:.85rem 2rem; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; text-decoration:none; transition:all .25s; border-radius:4px; }
-.btn-dark:hover { background:#0D2347; transform:translateY(-2px); box-shadow:0 8px 25px rgba(0,0,0,.3); }
-.btn-outline-dark { background:transparent; color:var(--white); border:2px solid rgba(255,255,255,.5); padding:.85rem 2rem; font-family:'DM Sans',sans-serif; font-size:.8rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; text-decoration:none; transition:all .25s; border-radius:4px; }
-.btn-outline-dark:hover { background:rgba(255,255,255,.1); border-color:var(--white); }
-
-/* ── CONTACT */
-.contact { background:var(--blue-dark); position:relative; overflow:hidden; }
-.contact::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 50% 70% at 10% 50%,rgba(21,101,192,.12),transparent); }
-.contact-inner { display:grid; grid-template-columns:1fr 1.3fr; gap:5rem; align-items:start; position:relative; z-index:1; }
-.contact-desc { color:rgba(255,255,255,.55); font-size:.88rem; line-height:1.8; margin:1.2rem 0 2rem; font-weight:300; }
-.contact-details { display:flex; flex-direction:column; gap:1.2rem; margin-bottom:2rem; }
-.c-item { display:flex; align-items:flex-start; gap:.9rem; }
-.c-icon { width:38px; height:38px; border:1px solid rgba(66,165,245,.3); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; border-radius:4px; }
-.c-lbl { font-size:.65rem; color:var(--blue-light); letter-spacing:.15em; text-transform:uppercase; }
-.c-val { font-size:.87rem; color:rgba(255,255,255,.75); }
-.social-row { display:flex; gap:.6rem; }
-.soc-link { width:36px; height:36px; border:1px solid rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.5); font-size:.75rem; text-decoration:none; transition:all .2s; font-weight:600; border-radius:4px; }
-.soc-link:hover { border-color:var(--blue-light); color:var(--blue-light); }
-.contact-form { }
-.form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
-.form-group { display:flex; flex-direction:column; margin-bottom:1rem; }
-.form-group label { font-size:.67rem; letter-spacing:.15em; text-transform:uppercase; color:rgba(255,255,255,.45); margin-bottom:.4rem; }
-.form-group input, .form-group select, .form-group textarea {
-  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-  color:var(--white); padding:.75rem 1rem; font-family:'DM Sans',sans-serif;
-  font-size:.86rem; outline:none; resize:vertical; transition:border-color .2s; border-radius:4px;
-}
-.form-group input::placeholder, .form-group textarea::placeholder { color:rgba(255,255,255,.2); }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--blue-light); box-shadow:0 0 0 2px rgba(66,165,245,.15); }
-.form-group select option { background:var(--blue-dark); }
-.btn-submit { width:100%; background:var(--blue); color:var(--white); padding:1rem; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.82rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; transition:all .25s; border-radius:4px; box-shadow:0 4px 15px rgba(21,101,192,.4); }
-.btn-submit:hover { background:var(--blue-glow); transform:translateY(-2px); box-shadow:0 8px 25px rgba(21,101,192,.5); }
-
-/* ── FOOTER */
-footer { background:#050D1A; padding:4rem 2rem 1.5rem; }
-.footer-top { display:grid; grid-template-columns:2fr 1fr 1fr; gap:3rem; padding-bottom:3rem; border-bottom:1px solid rgba(255,255,255,.06); }
-.f-logo { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:700; color:var(--white); letter-spacing:.1em; text-transform:uppercase; }
-.f-logo span { color:var(--blue-light); }
-.f-tagline { font-size:.82rem; color:rgba(255,255,255,.35); line-height:1.65; margin-top:.6rem; font-style:italic; font-family:'Cormorant Garamond',serif; }
-.f-col h4 { font-size:.67rem; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.35); margin-bottom:1.1rem; }
-.f-col ul { list-style:none; display:flex; flex-direction:column; gap:.55rem; }
-.f-col ul a { font-size:.82rem; color:rgba(255,255,255,.5); text-decoration:none; transition:color .2s; }
-.f-col ul a:hover { color:var(--blue-light); }
-.footer-bottom { display:flex; justify-content:space-between; align-items:center; padding-top:1.5rem; flex-wrap:wrap; gap:1rem; }
-.f-copy, .f-adrs { font-size:.73rem; color:rgba(255,255,255,.25); }
-
-/* ── RESPONSIVE */
-@media(max-width:900px){
-  .hero-content, .about-grid, .mv-grid, .diff-grid,
-  .form-grid, .testi-grid, .contact-inner, .footer-top { grid-template-columns:1fr; }
-  .pub-grid { grid-template-columns:repeat(2,1fr); }
-  .dur-grid { grid-template-columns:repeat(2,1fr); }
-  .nav-links { display:none; flex-direction:column; position:absolute; top:70px; left:0; right:0; background:var(--blue-dark); padding:1.5rem; gap:1rem; }
-  .nav-links.open { display:flex; }
-  .hamburger { display:flex; }
-  .hero-card { display:none; }
-  .form-header { flex-direction:column; align-items:flex-start; }
-  .cta-inner { flex-direction:column; align-items:flex-start; }
-  .form-row { grid-template-columns:1fr; }
-  .about::before { display:none; }
-}`,
-
-  "assets/css/animations.css": `/* ==============================
-   STONEBRIDGE — animations.css
-   ============================== */
-
-/* Keyframes */
-@keyframes floatCard {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-12px); }
-}
-@keyframes fillBar {
-  from { width: 0; }
-}
-@keyframes fadeDown {
-  from { opacity:0; transform:translateY(-30px); }
-  to   { opacity:1; transform:none; }
-}
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(30px); }
-  to   { opacity:1; transform:none; }
-}
-@keyframes fadeIn {
-  from { opacity:0; }
-  to   { opacity:1; }
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(21,101,192,0.4); }
-  50%       { box-shadow: 0 0 0 12px rgba(21,101,192,0); }
-}
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-/* Hero entrances */
-.hero-eyebrow  { animation: fadeDown 0.8s ease forwards; }
-.hero-title    { animation: fadeDown 1s 0.1s ease both; }
-.hero-desc     { animation: fadeUp 1s 0.3s ease both; }
-.hero-actions  { animation: fadeUp 1s 0.5s ease both; }
-.hero-stats    { animation: fadeUp 1s 0.7s ease both; }
-.hero-card     { animation: floatCard 6s ease-in-out infinite; }
-
-/* Scroll fade-in */
-.fade-in {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-.fade-in.visible {
-  opacity: 1;
-  transform: none;
-}
-.fade-in.delay-1 { transition-delay: 0.1s; }
-.fade-in.delay-2 { transition-delay: 0.2s; }
-.fade-in.delay-3 { transition-delay: 0.3s; }
-.fade-in.delay-4 { transition-delay: 0.4s; }
-.fade-in.delay-5 { transition-delay: 0.5s; }
-
-/* Hover glow on cards */
-.form-card:hover,
-.mv-card:hover,
-.dur-card:hover {
-  box-shadow: 0 0 30px rgba(21,101,192,0.15);
-}
-
-/* CTA button pulse */
-.btn-primary {
-  animation: pulse 3s ease-in-out infinite;
-}
-.btn-primary:hover {
-  animation: none;
-}
-
-/* Level bars */
-.level-fill {
-  animation: fillBar 1.5s ease forwards;
-}
-
-/* Shimmer text effect */
-.hero-title em {
-  background: linear-gradient(90deg, #42A5F5, #90CAF9, #42A5F5);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 3s linear infinite;
-}`,
-
-  "assets/js/main.js": `/* ==============================
-   STONEBRIDGE — main.js
-   ============================== */
-
-document.addEventListener('DOMContentLoaded', function () {
-
-  /* ── Scroll fade-in */
-  const io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  document.querySelectorAll('.fade-in').forEach(function(el) {
-    io.observe(el);
-  });
-
-  /* ── Navbar shadow on scroll */
-  var navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', function() {
-    if (window.scrollY > 60) {
-      navbar.style.boxShadow = '0 4px 30px rgba(0,0,0,0.5)';
-    } else {
-      navbar.style.boxShadow = 'none';
-    }
-  });
-
-  /* ── Smooth scroll */
-  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
-    a.addEventListener('click', function(e) {
-      var target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Fermer menu mobile si ouvert
-        document.getElementById('nav-links').classList.remove('open');
-      }
-    });
-  });
-
-  /* ── Hamburger menu */
-  var hamburger = document.getElementById('hamburger');
-  var navLinks  = document.getElementById('nav-links');
-  if (hamburger) {
-    hamburger.addEventListener('click', function() {
-      navLinks.classList.toggle('open');
-    });
-  }
-
-  /* ── Active nav link on scroll */
-  var sections = document.querySelectorAll('section[id], div[id]');
-  var navItems = document.querySelectorAll('.nav-links a');
-  window.addEventListener('scroll', function() {
-    var scrollPos = window.scrollY + 100;
-    sections.forEach(function(sec) {
-      if (sec.offsetTop <= scrollPos && sec.offsetTop + sec.offsetHeight > scrollPos) {
-        navItems.forEach(function(a) {
-          a.classList.remove('active-link');
-          if (a.getAttribute('href') === '#' + sec.id) {
-            a.classList.add('active-link');
-          }
-        });
-      }
-    });
-  });
-
-  /* ── Formulaire de contact */
-  var form = document.querySelector('.contact-form');
-  var submitBtn = document.querySelector('.btn-submit');
-  if (submitBtn) {
-    submitBtn.addEventListener('click', function() {
-      var prenom = form.querySelector('input[type="text"]').value.trim();
-      var email  = form.querySelector('input[type="email"]').value.trim();
-      if (!prenom || !email) {
-        alert('Veuillez remplir au minimum votre prénom et votre email.');
-        return;
-      }
-      submitBtn.textContent = 'Envoi en cours…';
-      submitBtn.disabled = true;
-      setTimeout(function() {
-        submitBtn.textContent = '✓ Demande envoyée avec succès !';
-        submitBtn.style.background = '#2e7d32';
-        form.querySelectorAll('input, select, textarea').forEach(function(el) {
-          el.value = '';
-        });
-        setTimeout(function() {
-          submitBtn.textContent = 'Envoyer ma demande ›';
-          submitBtn.style.background = '';
-          submitBtn.disabled = false;
-        }, 4000);
-      }, 1500);
-    });
-  }
-
-  /* ── Counter animation */
-  function animateCounter(el, target, suffix) {
-    var start = 0;
-    var duration = 1500;
-    var step = target / (duration / 16);
-    var timer = setInterval(function() {
-      start += step;
-      if (start >= target) {
-        el.textContent = target + (suffix || '');
-        clearInterval(timer);
-      } else {
-        el.textContent = Math.floor(start) + (suffix || '');
-      }
-    }, 16);
-  }
-
-  /* Observer pour les stats */
-  var statNums = document.querySelectorAll('.stat-num');
-  var statObs  = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) {
-        var txt = e.target.textContent;
-        if (txt.includes('2021')) animateCounter(e.target, 2021, '');
-        if (txt.includes('+')) {
-          var num = parseInt(txt);
-          if (!isNaN(num)) animateCounter(e.target, num, '+');
-        }
-        statObs.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.5 });
-
-  statNums.forEach(function(el) { statObs.observe(el); });
-});`,
-
-  "assets/css/responsive.css": `/* ==============================
-   STONEBRIDGE — responsive.css
-   Breakpoints additionnels
-   ============================== */
-
-/* ── Tablette paysage */
-@media (max-width: 1100px) {
-  .diff-grid  { grid-template-columns: repeat(2, 1fr); }
-  .pub-grid   { grid-template-columns: repeat(3, 1fr); }
-  .hero-title { font-size: 3rem; }
-}
-
-/* ── Tablette portrait */
-@media (max-width: 768px) {
-  .form-grid  { grid-template-columns: 1fr 1fr; }
-  .testi-grid { grid-template-columns: 1fr; }
-  .dur-grid   { grid-template-columns: repeat(2, 1fr); }
-  .mv-grid    { grid-template-columns: 1fr; }
-  .hero-stats { gap: 1.2rem; }
-  .stat-num   { font-size: 1.8rem; }
-  .cta-title  { font-size: 1.8rem; }
-  section     { padding: 4rem 1.5rem; }
-}
-
-/* ── Mobile */
-@media (max-width: 480px) {
-  .form-grid   { grid-template-columns: 1fr; }
-  .pub-grid    { grid-template-columns: 1fr 1fr; }
-  .dur-grid    { grid-template-columns: 1fr 1fr; }
-  .about-values { grid-template-columns: 1fr; }
-  .hero-title  { font-size: 2.2rem; }
-  .sec-title   { font-size: 1.8rem; }
-  .footer-top  { grid-template-columns: 1fr; gap: 2rem; }
-  .footer-bottom { flex-direction: column; text-align: center; }
-  .nav-logo    { font-size: 1.1rem; }
-  section      { padding: 3rem 1rem; }
-  .cta-band    { padding: 3rem 1rem; }
-  .cta-btns    { flex-direction: column; }
-}
-
-/* ── Active nav link */
-.nav-links a.active-link {
-  color: var(--blue-light) !important;
-}
-.nav-links a.active-link::after {
-  transform: scaleX(1) !important;
-}`,
-};
-
-const structure = [
-  { name: "index.html", type: "file", key: "index.html" },
-  {
-    name: "assets/", type: "folder", children: [
-      {
-        name: "css/", type: "folder", children: [
-          { name: "style.css", type: "file", key: "assets/css/style.css" },
-          { name: "animations.css", type: "file", key: "assets/css/animations.css" },
-          { name: "responsive.css", type: "file", key: "assets/css/responsive.css" },
-        ]
-      },
-      {
-        name: "js/", type: "folder", children: [
-          { name: "main.js", type: "file", key: "assets/js/main.js" },
-        ]
-      },
-      {
-        name: "img/", type: "folder", children: [
-          { name: "logo.png", type: "placeholder" },
-          { name: "favicon.png", type: "placeholder" },
-          { name: "hero-bg.jpg", type: "placeholder" },
-          { name: "about.jpg", type: "placeholder" },
-        ]
-      },
-    ]
-  },
-];
-
-function download(key) {
-  const content = files[key];
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = key.split("/").pop();
-  a.click();
-}
-
-function downloadAll() {
-  Object.entries(files).forEach(([key, content], i) => {
-    setTimeout(() => {
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = key.split("/").pop();
-      a.click();
-    }, i * 400);
-  });
-}
-
-function FileIcon({ type, name }) {
-  if (type === "folder") return <span style={{fontSize:"1.1rem"}}>📁</span>;
-  if (name?.endsWith(".html")) return <span style={{fontSize:"1.1rem"}}>🌐</span>;
-  if (name?.endsWith(".css")) return <span style={{fontSize:"1.1rem"}}>🎨</span>;
-  if (name?.endsWith(".js")) return <span style={{fontSize:"1.1rem"}}>⚡</span>;
-  if (type === "placeholder") return <span style={{fontSize:"1.1rem", opacity:.4}}>🖼️</span>;
-  return <span style={{fontSize:"1.1rem"}}>📄</span>;
-}
-
-function TreeNode({ node, depth = 0 }) {
-  const [open, setOpen] = useState(true);
-  const isFolder = node.type === "folder";
-  const isPlaceholder = node.type === "placeholder";
-  return (
-    <div style={{ marginLeft: depth * 18 }}>
-      <div
-        style={{
-          display:"flex", alignItems:"center", gap:"0.5rem",
-          padding:"0.35rem 0.6rem", borderRadius:6, cursor: isFolder ? "pointer" : "default",
-          background: isFolder ? "rgba(66,165,245,0.05)" : "transparent",
-          marginBottom:"2px",
-          transition:"background .15s",
-        }}
-        onClick={() => isFolder && setOpen(o => !o)}
-      >
-        {isFolder && <span style={{fontSize:".7rem", color:"#42A5F5", width:12}}>{open ? "▾" : "▸"}</span>}
-        {!isFolder && <span style={{width:12}}/>}
-        <FileIcon type={node.type} name={node.name} />
-        <span style={{
-          fontSize:".83rem", fontFamily:"monospace",
-          color: isFolder ? "#90CAF9" : isPlaceholder ? "rgba(255,255,255,.3)" : "#E3F2FD",
-          fontStyle: isPlaceholder ? "italic" : "normal",
-          flex:1,
-        }}>{node.name}</span>
-        {node.key && (
-          <button
-            onClick={e => { e.stopPropagation(); download(node.key); }}
-            style={{
-              background:"rgba(21,101,192,.5)", border:"1px solid rgba(66,165,245,.4)",
-              color:"#90CAF9", padding:"0.2rem 0.55rem", borderRadius:4,
-              fontSize:".65rem", cursor:"pointer", letterSpacing:".05em", fontFamily:"inherit",
-              transition:"all .2s",
-            }}
-            onMouseEnter={e => e.target.style.background="rgba(21,101,192,.9)"}
-            onMouseLeave={e => e.target.style.background="rgba(21,101,192,.5)"}
-          >↓ DL</button>
-        )}
-        {isPlaceholder && (
-          <span style={{fontSize:".6rem", color:"rgba(255,255,255,.25)", fontFamily:"inherit"}}>à fournir</span>
-        )}
-      </div>
-      {isFolder && open && node.children?.map((c, i) => (
-        <TreeNode key={i} node={c} depth={depth + 1} />
-      ))}
-    </div>
-  );
-}
-
-export default function App() {
-  const [downloaded, setDownloaded] = useState(false);
-  const handleDownloadAll = () => {
-    downloadAll();
-    setDownloaded(true);
-    setTimeout(() => setDownloaded(false), 3000);
-  };
-  const fileCount = Object.keys(files).length;
-
-  return (
-    <div style={{
-      minHeight:"100vh", background:"linear-gradient(135deg,#050D1A 0%,#0A1628 50%,#0D2347 100%)",
-      fontFamily:"'DM Sans',sans-serif", color:"#E3F2FD", padding:"2rem",
-    }}>
-      {/* Header */}
-      <div style={{ maxWidth:780, margin:"0 auto" }}>
-        <div style={{
-          background:"rgba(21,101,192,.08)", border:"1px solid rgba(66,165,245,.2)",
-          borderRadius:12, padding:"2rem 2.5rem", marginBottom:"2rem",
-          boxShadow:"0 20px 60px rgba(0,0,0,.4)",
-        }}>
-          <div style={{ display:"flex", alignItems:"center", gap:"1rem", marginBottom:"1rem" }}>
-            <div style={{
-              width:50, height:50, borderRadius:10,
-              background:"linear-gradient(135deg,#1565C0,#42A5F5)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:"1.4rem", boxShadow:"0 4px 15px rgba(21,101,192,.4)",
-            }}>🗂️</div>
-            <div>
-              <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"1.6rem", fontWeight:700, letterSpacing:".08em" }}>
-                STONE<span style={{color:"#42A5F5"}}>BRIDGE</span>
-              </div>
-              <div style={{ fontSize:".75rem", color:"rgba(255,255,255,.5)", letterSpacing:".15em", textTransform:"uppercase" }}>
-                Dossier du site web — {fileCount} fichiers
-              </div>
-            </div>
-          </div>
-
-          {/* Infos */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"1rem", marginBottom:"1.5rem" }}>
-            {[
-              ["🌐","1 fichier HTML","Page principale"],
-              ["🎨","3 fichiers CSS","Style, Animations, Responsive"],
-              ["⚡","1 fichier JS","Interactivité complète"],
-            ].map(([ic,t,s],i) => (
-              <div key={i} style={{
-                background:"rgba(66,165,245,.07)", border:"1px solid rgba(66,165,245,.15)",
-                borderRadius:8, padding:"1rem", textAlign:"center",
-              }}>
-                <div style={{fontSize:"1.4rem",marginBottom:".3rem"}}>{ic}</div>
-                <div style={{fontSize:".78rem",fontWeight:500,color:"#90CAF9"}}>{t}</div>
-                <div style={{fontSize:".65rem",color:"rgba(255,255,255,.4)",marginTop:".2rem"}}>{s}</div>
-              </div>
-            ))}
-          </div>
-
-          <button
-            onClick={handleDownloadAll}
-            style={{
-              width:"100%", padding:"1rem",
-              background: downloaded
-                ? "linear-gradient(135deg,#2e7d32,#43a047)"
-                : "linear-gradient(135deg,#1565C0,#1E88E5)",
-              border:"none", borderRadius:8, color:"#fff",
-              fontSize:".85rem", fontWeight:600, letterSpacing:".12em",
-              textTransform:"uppercase", cursor:"pointer", fontFamily:"inherit",
-              transition:"all .3s",
-              boxShadow: downloaded
-                ? "0 4px 20px rgba(46,125,50,.4)"
-                : "0 4px 20px rgba(21,101,192,.4)",
-            }}
-          >
-            {downloaded ? "✓ Fichiers téléchargés !" : "↓ Télécharger tous les fichiers"}
-          </button>
-        </div>
-
-        {/* Arborescence */}
-        <div style={{
-          background:"rgba(10,22,40,.8)", border:"1px solid rgba(66,165,245,.15)",
-          borderRadius:12, padding:"1.5rem", marginBottom:"2rem",
-          boxShadow:"0 10px 40px rgba(0,0,0,.3)",
-        }}>
-          <div style={{
-            display:"flex", alignItems:"center", justifyContent:"space-between",
-            marginBottom:"1.2rem", paddingBottom:"1rem",
-            borderBottom:"1px solid rgba(66,165,245,.1)",
-          }}>
-            <span style={{fontSize:".72rem",letterSpacing:".15em",textTransform:"uppercase",color:"rgba(255,255,255,.4)"}}>
-              Arborescence du projet
-            </span>
-            <div style={{display:"flex",gap:".4rem"}}>
-              {["#FF5F57","#FEBC2E","#28C840"].map((c,i) => (
-                <div key={i} style={{width:10,height:10,borderRadius:"50%",background:c}}/>
-              ))}
-            </div>
-          </div>
-          <div style={{
-            fontFamily:"monospace", fontSize:".78rem",
-            color:"rgba(66,165,245,.6)", marginBottom:".8rem", paddingLeft:".6rem",
-          }}>
-            📂 stonebridge-website/
-          </div>
-          {structure.map((node, i) => <TreeNode key={i} node={node} depth={1} />)}
-        </div>
-
-        {/* Instructions */}
-        <div style={{
-          background:"rgba(21,101,192,.08)", border:"1px solid rgba(66,165,245,.15)",
-          borderRadius:12, padding:"1.5rem",
-        }}>
-          <div style={{fontSize:".72rem",letterSpacing:".15em",textTransform:"uppercase",color:"#42A5F5",marginBottom:"1rem"}}>
-            📋 Comment utiliser ce dossier
-          </div>
-          {[
-            ["1","Créez un dossier","stonebridge-website/ sur votre ordinateur"],
-            ["2","Créez la structure","assets/css/ · assets/js/ · assets/img/"],
-            ["3","Placez les fichiers","Chaque fichier dans son dossier correspondant"],
-            ["4","Ajoutez vos images","Logo, photos dans assets/img/"],
-            ["5","Ouvrez index.html","Dans votre navigateur pour prévisualiser"],
-          ].map(([n,t,d],i) => (
-            <div key={i} style={{
-              display:"flex", gap:"1rem", alignItems:"flex-start",
-              marginBottom:".8rem", paddingBottom:".8rem",
-              borderBottom: i<4 ? "1px solid rgba(255,255,255,.05)" : "none",
-            }}>
-              <div style={{
-                width:26,height:26,borderRadius:"50%",
-                background:"rgba(21,101,192,.4)",border:"1px solid rgba(66,165,245,.3)",
-                display:"flex",alignItems:"center",justifyContent:"center",
-                fontSize:".72rem",fontWeight:700,color:"#90CAF9",flexShrink:0,
-              }}>{n}</div>
-              <div>
-                <div style={{fontSize:".82rem",fontWeight:500,color:"#E3F2FD"}}>{t}</div>
-                <div style={{fontSize:".72rem",color:"rgba(255,255,255,.4)",marginTop:".15rem",fontFamily:"monospace"}}>{d}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+</html>
